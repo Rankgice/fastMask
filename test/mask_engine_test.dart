@@ -18,6 +18,25 @@ void main() {
   });
 
   group('MaskEngine', () {
+    test('uses a readable default mask palette', () {
+      const rule = MaskRule();
+
+      expect(rule.backgroundColor.value, MaskRule.defaultBackgroundColor);
+      expect(rule.foregroundColor.value, MaskRule.defaultForegroundColor);
+      expect(rule.backgroundColor.value, isNot(0xFF1F2933));
+      expect(rule.foregroundColor.value, isNot(0xFFFFFFFF));
+    });
+
+    test('migrates legacy default mask colors from saved rules', () {
+      final rule = MaskRule.fromJson({
+        'backgroundColor': 0xFF1F2933,
+        'foregroundColor': 0xFFFFFFFF,
+      });
+
+      expect(rule.backgroundColor.value, MaskRule.defaultBackgroundColor);
+      expect(rule.foregroundColor.value, MaskRule.defaultForegroundColor);
+    });
+
     test('preserves source and masks only selected ranges', () {
       const source = 'phone=13812345678';
       const range = MaskRange(start: 6, end: 17, seed: 1);

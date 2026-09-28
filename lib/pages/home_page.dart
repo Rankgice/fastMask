@@ -298,12 +298,10 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               const SizedBox(width: 7),
-              const Text(
-                '设置',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
+              const Expanded(
+                child: _SettingsPageTitle(
+                  title: '设置',
+                  description: '调整遮挡效果与快捷操作',
                 ),
               ),
             ],
@@ -317,34 +315,65 @@ class _HomePageState extends State<HomePage> {
               DecoratedBox(
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: AppColors.border),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(5),
                   child: SizedBox(
-                    width: 136,
-                    child: NavigationRail(
-                      selectedIndex: _settingsSection.index,
-                      labelType: NavigationRailLabelType.all,
-                      groupAlignment: -0.88,
-                      onDestinationSelected: (index) {
-                        setState(() {
-                          _settingsSection = _SettingsSection.values[index];
-                        });
-                      },
-                      destinations: const [
-                        NavigationRailDestination(
-                          icon: Icon(Icons.rule_outlined),
-                          selectedIcon: Icon(Icons.rule),
-                          label: Text('模糊规则'),
-                        ),
-                        NavigationRailDestination(
-                          icon: Icon(Icons.keyboard_outlined),
-                          selectedIcon: Icon(Icons.keyboard),
-                          label: Text('快捷键'),
-                        ),
-                      ],
+                    width: 128,
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Column(
+                        children: [
+                          _SettingsNavItem(
+                            label: '模糊规则',
+                            icon: Icons.rule_outlined,
+                            selectedIcon: Icons.rule,
+                            selected:
+                                _settingsSection == _SettingsSection.rules,
+                            onTap: () {
+                              setState(() {
+                                _settingsSection = _SettingsSection.rules;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 3),
+                          _SettingsNavItem(
+                            label: '快捷键',
+                            icon: Icons.keyboard_outlined,
+                            selectedIcon: Icons.keyboard,
+                            selected:
+                                _settingsSection == _SettingsSection.shortcuts,
+                            onTap: () {
+                              setState(() {
+                                _settingsSection = _SettingsSection.shortcuts;
+                              });
+                            },
+                          ),
+                          const Spacer(),
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(7, 8, 7, 5),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.shield_outlined,
+                                  size: 13,
+                                  color: AppColors.textMuted,
+                                ),
+                                SizedBox(width: 5),
+                                Text(
+                                  '本地处理',
+                                  style: TextStyle(
+                                    color: AppColors.textMuted,
+                                    fontSize: 10.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -354,11 +383,11 @@ class _HomePageState extends State<HomePage> {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: AppColors.border),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(5),
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 140),
                       child: _settingsSection == _SettingsSection.rules
@@ -385,78 +414,76 @@ class _HomePageState extends State<HomePage> {
   Widget _buildShortcutSettings() {
     return SingleChildScrollView(
       key: const ValueKey('shortcut-panel'),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
               const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '快捷键',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      '修改后立即重新注册，固定关闭键为 Esc。',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 11.5,
-                      ),
-                    ),
-                  ],
+                child: _SettingsPanelHeading(
+                  title: '快捷键',
+                  description: '修改后立即生效，Esc 始终用于关闭窗口。',
                 ),
               ),
-              TextButton.icon(
+              _SettingsQuietButton(
+                icon: Icons.restart_alt,
+                label: '恢复默认',
                 onPressed: () {
                   controller.resetShortcuts();
                   widget.desktopService.refreshHotKeys();
                 },
-                icon: const Icon(Icons.restart_alt, size: 16),
-                label: const Text('恢复默认'),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          _buildShortcutRow(ShortcutAction.quickMask, '打开快速模糊', '显示窗口并进入模糊视图'),
-          const SizedBox(height: 8),
-          _buildShortcutRow(
-            ShortcutAction.toggleWindow,
-            '显示/隐藏主窗口',
-            '在后台显示或隐藏工作台',
+          _SettingsGroup(
+            title: '功能快捷键',
+            description: '点击录制框后按下新的组合键。',
+            child: Column(
+              children: [
+                _buildShortcutRow(
+                  ShortcutAction.quickMask,
+                  '打开快速模糊',
+                  '显示窗口并进入模糊视图',
+                ),
+                const SizedBox(height: 7),
+                _buildShortcutRow(
+                  ShortcutAction.toggleWindow,
+                  '显示/隐藏主窗口',
+                  '在后台显示或隐藏工作台',
+                ),
+                const SizedBox(height: 7),
+                _buildShortcutRow(
+                  ShortcutAction.togglePreview,
+                  '编辑/模糊切换',
+                  '在工作台编辑和模糊结果之间切换',
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          _buildShortcutRow(
-            ShortcutAction.togglePreview,
-            '编辑/模糊切换',
-            '在工作台编辑和模糊结果之间切换',
-          ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(11),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.surfaceSubtle,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: AppColors.border),
+              color: AppColors.primarySoft.withValues(alpha: 0.48),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.28),
+              ),
             ),
             child: const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: AppColors.textSecondary,
+                  Icons.lightbulb_outline,
+                  size: 15,
+                  color: AppColors.primary,
                 ),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'macOS 首次使用全局快捷键时，可能需要在“系统设置 → 隐私与安全性 → 输入监控 / 辅助功能”中允许 FastMask。',
+                    'macOS 首次使用时，可能需要在“系统设置 → 隐私与安全性 → 输入监控 / 辅助功能”中允许 FastMask。',
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 11.5,
@@ -480,11 +507,11 @@ class _HomePageState extends State<HomePage> {
     final config =
         controller.shortcuts[action] ?? ShortcutConfig.defaults[action]!;
     return Container(
-      padding: const EdgeInsets.fromLTRB(11, 8, 9, 8),
+      padding: const EdgeInsets.fromLTRB(10, 7, 8, 7),
       decoration: BoxDecoration(
-        color: AppColors.surfaceSubtle,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.border),
+        color: AppColors.canvas.withValues(alpha: 0.42),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.72)),
       ),
       child: Row(
         children: [
@@ -512,7 +539,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(width: 12),
           SizedBox(
-            width: 158,
+            width: 154,
             child: ShortcutRecorderField(
               action: action,
               config: config,
@@ -613,6 +640,216 @@ class _ModeTab extends StatelessWidget {
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       child: Text(label),
+    );
+  }
+}
+
+class _SettingsPageTitle extends StatelessWidget {
+  const _SettingsPageTitle({required this.title, required this.description});
+
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            description,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SettingsNavItem extends StatelessWidget {
+  const _SettingsNavItem({
+    required this.label,
+    required this.icon,
+    required this.selectedIcon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final IconData selectedIcon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? AppColors.selectedSurface : Colors.transparent,
+      borderRadius: BorderRadius.circular(5),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(5),
+        hoverColor: AppColors.hoverSurface,
+        child: SizedBox(
+          height: 34,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                Icon(
+                  selected ? selectedIcon : icon,
+                  size: 16,
+                  color: selected ? AppColors.primary : AppColors.textSecondary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: selected
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsPanelHeading extends StatelessWidget {
+  const _SettingsPanelHeading({required this.title, required this.description});
+
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          description,
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+        ),
+      ],
+    );
+  }
+}
+
+class _SettingsQuietButton extends StatelessWidget {
+  const _SettingsQuietButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      style: ButtonStyle(
+        foregroundColor: const WidgetStatePropertyAll(AppColors.textSecondary),
+        overlayColor: const WidgetStatePropertyAll(AppColors.hoverSurface),
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 8),
+        ),
+        minimumSize: const WidgetStatePropertyAll(Size(0, 28)),
+        textStyle: const WidgetStatePropertyAll(
+          TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
+        ),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        ),
+      ),
+      icon: Icon(icon, size: 15),
+      label: Text(label),
+    );
+  }
+}
+
+class _SettingsGroup extends StatelessWidget {
+  const _SettingsGroup({
+    required this.title,
+    required this.child,
+    this.description,
+  });
+
+  final String title;
+  final String? description;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSubtle.withValues(alpha: 0.42),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (description != null) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    description!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 10.5,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          child,
+        ],
+      ),
     );
   }
 }

@@ -9,6 +9,11 @@ enum MaskVisualStyle { glyph, solid }
 enum MaskPatternPreset { asterisk, square, hash, custom }
 
 class MaskRule {
+  static const defaultBackgroundColor = 0xFF3A4048;
+  static const defaultForegroundColor = 0xFFE6E8EB;
+  static const _legacyDefaultBackgroundColor = 0xFF1F2933;
+  static const _legacyDefaultForegroundColor = 0xFFFFFFFF;
+
   const MaskRule({
     this.lengthMode = MaskLengthMode.preserve,
     this.visualStyle = MaskVisualStyle.glyph,
@@ -18,8 +23,8 @@ class MaskRule {
     this.ratio = 1,
     this.minDelta = -2,
     this.maxDelta = 2,
-    this.backgroundColor = const ColorValue(0xFF1F2933),
-    this.foregroundColor = const ColorValue(0xFFFFFFFF),
+    this.backgroundColor = const ColorValue(defaultBackgroundColor),
+    this.foregroundColor = const ColorValue(defaultForegroundColor),
   });
 
   final MaskLengthMode lengthMode;
@@ -146,6 +151,9 @@ class MaskRule {
       );
     }
 
+    final storedBackgroundColor = json['backgroundColor'] as int?;
+    final storedForegroundColor = json['foregroundColor'] as int?;
+
     return MaskRule(
       lengthMode: enumValue(
         MaskLengthMode.values,
@@ -168,10 +176,16 @@ class MaskRule {
       minDelta: json['minDelta'] as int? ?? -2,
       maxDelta: json['maxDelta'] as int? ?? 2,
       backgroundColor: ColorValue(
-        json['backgroundColor'] as int? ?? 0xFF1F2933,
+        storedBackgroundColor == null ||
+                storedBackgroundColor == _legacyDefaultBackgroundColor
+            ? defaultBackgroundColor
+            : storedBackgroundColor,
       ),
       foregroundColor: ColorValue(
-        json['foregroundColor'] as int? ?? 0xFFFFFFFF,
+        storedForegroundColor == null ||
+                storedForegroundColor == _legacyDefaultForegroundColor
+            ? defaultForegroundColor
+            : storedForegroundColor,
       ),
     );
   }

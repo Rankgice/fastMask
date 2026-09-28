@@ -87,161 +87,170 @@ class _MaskRulePanelState extends State<MaskRulePanel> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
               const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '模糊规则',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      '只影响预览和复制结果，不会直接修改原文。',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 11.5,
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
+                child: _RuleHeading(
+                  title: '模糊规则',
+                  description: '只影响预览和复制结果，不会修改原文。',
                 ),
               ),
               const SizedBox(width: 12),
               FilledButton.icon(
                 onPressed: _isDirty ? _save : null,
-                icon: const Icon(Icons.save_outlined, size: 16),
+                icon: Icon(
+                  _isDirty ? Icons.save_outlined : Icons.check,
+                  size: 15,
+                ),
                 label: const Text('保存'),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          const _SectionLabel('模糊后长度'),
-          const SizedBox(height: 7),
-          DropdownButtonFormField<MaskLengthMode>(
-            key: ValueKey('length-mode-${_draft.lengthMode}'),
-            initialValue: _draft.lengthMode,
-            decoration: const InputDecoration(labelText: '长度规则'),
-            items: const [
-              DropdownMenuItem(
-                value: MaskLengthMode.preserve,
-                child: Text('保持原长度'),
-              ),
-              DropdownMenuItem(
-                value: MaskLengthMode.fixed,
-                child: Text('固定替换文本'),
-              ),
-              DropdownMenuItem(
-                value: MaskLengthMode.proportional,
-                child: Text('按比例'),
-              ),
-              DropdownMenuItem(
-                value: MaskLengthMode.randomRange,
-                child: Text('随机增减'),
-              ),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                _updateDraft(_draft.copyWith(lengthMode: value));
-              }
-            },
+          const SizedBox(height: 10),
+          _RulePreview(rule: _draft),
+          const SizedBox(height: 10),
+          _RuleGroup(
+            title: '模糊后长度',
+            description: '控制遮挡区域显示多少个字符',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DropdownButtonFormField<MaskLengthMode>(
+                  key: ValueKey('length-mode-${_draft.lengthMode}'),
+                  initialValue: _draft.lengthMode,
+                  decoration: const InputDecoration(labelText: '长度规则'),
+                  items: const [
+                    DropdownMenuItem(
+                      value: MaskLengthMode.preserve,
+                      child: Text('保持原长度'),
+                    ),
+                    DropdownMenuItem(
+                      value: MaskLengthMode.fixed,
+                      child: Text('固定替换文本'),
+                    ),
+                    DropdownMenuItem(
+                      value: MaskLengthMode.proportional,
+                      child: Text('按比例'),
+                    ),
+                    DropdownMenuItem(
+                      value: MaskLengthMode.randomRange,
+                      child: Text('随机增减'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      _updateDraft(_draft.copyWith(lengthMode: value));
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildLengthOptions(),
+              ],
+            ),
           ),
           const SizedBox(height: 10),
-          _buildLengthOptions(),
-          const SizedBox(height: 14),
-          const _SectionLabel('遮挡字符'),
-          const SizedBox(height: 7),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: ['*', '█', '#', 'x'].map((token) {
-              final selected = _draft.token == token;
-              return ChoiceChip(
-                label: Text(
-                  token,
-                  style: TextStyle(
-                    color: selected
-                        ? AppColors.textPrimary
-                        : AppColors.textSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                selected: selected,
-                showCheckmark: false,
-                selectedColor: AppColors.selectedSurface,
-                backgroundColor: AppColors.editorSurface,
-                side: BorderSide(
-                  color: selected ? AppColors.primary : AppColors.borderStrong,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                onSelected: (_) {
-                  _customTokenController.clear();
-                  _updateDraft(
-                    _draft.copyWith(
-                      token: token,
-                      patternPreset: switch (token) {
-                        '*' => MaskPatternPreset.asterisk,
-                        '█' => MaskPatternPreset.square,
-                        '#' => MaskPatternPreset.hash,
-                        _ => MaskPatternPreset.custom,
+          _RuleGroup(
+            title: '遮挡字符',
+            description: '字符模式下显示的内容',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: ['*', '█', '#', 'x'].map((token) {
+                    final selected = _draft.token == token;
+                    return ChoiceChip(
+                      label: Text(
+                        token,
+                        style: TextStyle(
+                          color: selected
+                              ? AppColors.textPrimary
+                              : AppColors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      selected: selected,
+                      showCheckmark: false,
+                      selectedColor: AppColors.selectedSurface,
+                      backgroundColor: AppColors.canvas,
+                      side: BorderSide(
+                        color: selected
+                            ? AppColors.primary
+                            : AppColors.borderStrong,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2,
+                      ),
+                      onSelected: (_) {
+                        _customTokenController.clear();
+                        _updateDraft(
+                          _draft.copyWith(
+                            token: token,
+                            patternPreset: switch (token) {
+                              '*' => MaskPatternPreset.asterisk,
+                              '█' => MaskPatternPreset.square,
+                              '#' => MaskPatternPreset.hash,
+                              _ => MaskPatternPreset.custom,
+                            },
+                          ),
+                        );
                       },
-                    ),
-                  );
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _customTokenController,
-            decoration: const InputDecoration(
-              labelText: '自定义字符',
-              hintText: '例如 ■ 或 [隐藏]',
-            ),
-            onChanged: (value) {
-              _updateDraft(
-                _draft.copyWith(
-                  token: value,
-                  patternPreset: MaskPatternPreset.custom,
+                    );
+                  }).toList(),
                 ),
-              );
-            },
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _customTokenController,
+                  decoration: const InputDecoration(
+                    labelText: '自定义字符',
+                    hintText: '例如 ■ 或 [隐藏]',
+                  ),
+                  onChanged: (value) {
+                    _updateDraft(
+                      _draft.copyWith(
+                        token: value,
+                        patternPreset: MaskPatternPreset.custom,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 14),
-          const _SectionLabel('显示样式'),
-          const SizedBox(height: 7),
-          SegmentedButton<MaskVisualStyle>(
-            showSelectedIcon: false,
-            expandedInsets: EdgeInsets.zero,
-            segments: const [
-              ButtonSegment(
-                value: MaskVisualStyle.glyph,
-                icon: Icon(Icons.text_fields_outlined, size: 16),
-                label: Text('字符覆盖'),
-              ),
-              ButtonSegment(
-                value: MaskVisualStyle.solid,
-                icon: Icon(Icons.square_outlined, size: 16),
-                label: Text('纯色遮挡'),
-              ),
-            ],
-            selected: {_draft.visualStyle},
-            onSelectionChanged: (selection) {
-              _updateDraft(_draft.copyWith(visualStyle: selection.first));
-            },
+          const SizedBox(height: 10),
+          _RuleGroup(
+            title: '显示样式',
+            description: '字符覆盖会保留替换文本，纯色遮挡只显示底色',
+            child: SegmentedButton<MaskVisualStyle>(
+              showSelectedIcon: false,
+              expandedInsets: EdgeInsets.zero,
+              segments: const [
+                ButtonSegment(
+                  value: MaskVisualStyle.glyph,
+                  icon: Icon(Icons.text_fields_outlined, size: 15),
+                  label: Text('字符覆盖'),
+                ),
+                ButtonSegment(
+                  value: MaskVisualStyle.solid,
+                  icon: Icon(Icons.square_outlined, size: 15),
+                  label: Text('纯色遮挡'),
+                ),
+              ],
+              selected: {_draft.visualStyle},
+              onSelectionChanged: (selection) {
+                _updateDraft(_draft.copyWith(visualStyle: selection.first));
+              },
+            ),
           ),
         ],
       ),
@@ -325,19 +334,168 @@ class _MaskRulePanelState extends State<MaskRulePanel> {
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
+class _RuleHeading extends StatelessWidget {
+  const _RuleHeading({required this.title, required this.description});
 
-  final String text;
+  final String title;
+  final String description;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(
-        color: AppColors.textPrimary,
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          description,
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+        ),
+      ],
+    );
+  }
+}
+
+class _RuleGroup extends StatelessWidget {
+  const _RuleGroup({
+    required this.title,
+    required this.description,
+    required this.child,
+  });
+
+  final String title;
+  final String description;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSubtle.withValues(alpha: 0.42),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  description,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 10.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _RulePreview extends StatelessWidget {
+  const _RulePreview({required this.rule});
+
+  final MaskRule rule;
+
+  String get _maskText {
+    if (rule.lengthMode == MaskLengthMode.fixed) {
+      return rule.fixedText;
+    }
+    final token = rule.previewToken;
+    final repeated = List.filled(6, token).join();
+    if (rule.lengthMode == MaskLengthMode.proportional) {
+      final count = (6 * rule.ratio).round().clamp(1, 12);
+      return List.filled(count, token).join();
+    }
+    return repeated;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showGlyph = rule.visualStyle == MaskVisualStyle.glyph;
+    return Container(
+      height: 42,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: AppColors.canvas,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.visibility_outlined,
+            size: 14,
+            color: AppColors.textMuted,
+          ),
+          const SizedBox(width: 7),
+          const Text(
+            '预览',
+            style: TextStyle(color: AppColors.textMuted, fontSize: 10.5),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            '订单号 1381',
+            style: TextStyle(
+              color: AppColors.editorText,
+              fontSize: 12.5,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          const SizedBox(width: 3),
+          Container(
+            constraints: const BoxConstraints(minWidth: 46, minHeight: 20),
+            padding: EdgeInsets.symmetric(
+              horizontal: showGlyph ? 4 : 0,
+              vertical: 1,
+            ),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Color(rule.backgroundColor.value),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: showGlyph
+                ? Text(
+                    _maskText,
+                    maxLines: 1,
+                    overflow: TextOverflow.clip,
+                    style: TextStyle(
+                      color: Color(rule.foregroundColor.value),
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      height: 1,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  )
+                : null,
+          ),
+        ],
       ),
     );
   }
@@ -351,11 +509,11 @@ class _HintBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.surfaceSubtle,
+        color: AppColors.canvas.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.72)),
       ),
       child: Text(
         text,
